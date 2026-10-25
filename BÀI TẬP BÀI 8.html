@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Game Học Tập Hóa Học 12 - Bài 8: Amine</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas-Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- KaTeX for math formatting -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    
+    * {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    .btn-bounce:active {
+      transform: scale(0.96);
+    }
+
+    .animated-bg {
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased h-full flex flex-col justify-between overflow-x-hidden">
+
+  <!-- Header Section -->
+  <header class="w-full max-w-5xl mx-auto px-4 pt-4 pb-2 flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-2xl bg-cyan-500 flex items-center justify-center text-white shadow-lg shadow-cyan-200">
+        <i data-lucide="flask-conical" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h1 class="text-lg md:text-xl font-bold bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          HÓA HỌC 12 - BÀI 8
+        </h1>
+        <p class="text-xs text-slate-500 font-medium">Chinh Phục AMINE</p>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex items-center space-x-2">
+      <button id="audio-toggle" onclick="toggleAudio()" class="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-slate-600 hover:text-cyan-600 transition-colors btn-bounce">
+        <i id="audio-icon" data-lucide="volume-2" class="w-5 h-5"></i>
+      </button>
+      <button onclick="showLeaderboard()" class="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-slate-600 hover:text-amber-500 transition-colors btn-bounce">
+        <i data-lucide="trophy" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="w-full max-w-4xl mx-auto px-4 py-2 flex-grow flex flex-col justify-center">
+
+    <!-- SCREEN 1: HOME / PROFILE -->
+    <section id="screen-home" class="glass-card rounded-3xl p-6 md:p-8 text-center my-auto transition-all duration-300">
+      <div class="inline-block p-4 rounded-3xl bg-cyan-50 text-cyan-600 mb-4 animate-bounce">
+        <i data-lucide="atom" class="w-12 h-12"></i>
+      </div>
+      <h2 class="text-2xl md:text-3xl font-black text-slate-800 mb-2">ĐẤU TRƯỜNG ANIME</h2>
+      <p class="text-slate-600 text-sm md:text-base max-w-md mx-auto mb-6">
+        Sẵn sàng thử thách bản thân với 30 câu hỏi tương tác thú vị chuẩn SGK Hóa Học 12 (Kết nối tri thức)!
+      </p>
+
+      <form id="profile-form" onsubmit="startGame(event)" class="max-w-sm mx-auto space-y-4">
+        <div>
+          <label class="block text-left text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Họ và Tên Học Sinh</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="player-name" required placeholder="Nhập tên của bạn..." 
+              class="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white/80 font-semibold text-slate-700">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-left text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Lớp Học</label>
+          <div class="relative">
+            <i data-lucide="school" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <select id="player-class" required class="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white/80 font-semibold text-slate-700">
+              <option value="12A1">12A1</option>
+              <option value="12A2">12A2</option>
+              <option value="12A3">12A3</option>
+              <option value="12A4">12A4</option>
+              <option value="12A5">12A5</option>
+              <option value="Khác">Khác</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg shadow-lg shadow-cyan-300/50 hover:opacity-95 transition-all btn-bounce flex items-center justify-center space-x-2">
+          <span>VÀO GAME NAY</span>
+          <i data-lucide="arrow-right" class="w-5 h-5"></i>
+        </button>
+      </form>
+    </section>
+
+    <!-- SCREEN 2: LEVEL MAP -->
+    <section id="screen-map" class="hidden transition-all duration-300">
+      <div class="glass-card rounded-2xl p-4 mb-6 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold">
+            <i data-lucide="user-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div id="map-player-name" class="font-bold text-slate-800 text-sm">---</div>
+            <div id="map-player-class" class="text-xs text-slate-500">Lớp: ---</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="text-xs text-slate-500 font-bold uppercase block">TỔNG ĐIỂM</span>
+          <span id="map-total-score" class="text-2xl font-black text-cyan-600">0 / 100</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Stage 1 -->
+        <div id="stage-card-1" onclick="selectStage(1)" class="glass-card rounded-3xl p-5 border-2 border-cyan-400 bg-white/90 relative overflow-hidden cursor-pointer hover:shadow-xl transition-all btn-bounce">
+          <div class="absolute -right-4 -bottom-4 opacity-10 text-cyan-600">
+            <i data-lucide="dna" class="w-32 h-32"></i>
+          </div>
+          <div class="flex justify-between items-start mb-4">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-cyan-100 text-cyan-700">CHẶNG 1</span>
+            <span id="stage-status-1" class="text-emerald-500"><i data-lucide="play-circle" class="w-6 h-6"></i></span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-1">Cấu Trúc & Danh Pháp</h3>
+          <p class="text-xs text-slate-500 mb-4">10 Câu • Dạng Trắc Nghiệm • 30đ</p>
+          <div class="flex justify-between items-center text-xs font-semibold text-slate-600 border-t pt-3 border-slate-100">
+            <span>Điểm đạt được:</span>
+            <span id="stage-score-1" class="font-bold text-cyan-600">0 / 30</span>
+          </div>
+        </div>
+
+        <!-- Stage 2 -->
+        <div id="stage-card-2" onclick="selectStage(2)" class="glass-card rounded-3xl p-5 border-2 border-slate-200 bg-slate-50/60 relative overflow-hidden opacity-60 cursor-not-allowed transition-all">
+          <div class="absolute -right-4 -bottom-4 opacity-10 text-indigo-600">
+            <i data-lucide="beaker" class="w-32 h-32"></i>
+          </div>
+          <div class="flex justify-between items-start mb-4">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-600">CHẶNG 2</span>
+            <span id="stage-status-2" class="text-slate-400"><i data-lucide="lock" class="w-6 h-6"></i></span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-1">Thử Thách Phòng Thí Nghiệm</h3>
+          <p class="text-xs text-slate-500 mb-4">10 Câu • Đúng/Sai & Ghép Đôi • 35đ</p>
+          <div class="flex justify-between items-center text-xs font-semibold text-slate-600 border-t pt-3 border-slate-100">
+            <span>Điểm đạt được:</span>
+            <span id="stage-score-2" class="font-bold text-slate-400">0 / 35</span>
+          </div>
+        </div>
+
+        <!-- Stage 3 -->
+        <div id="stage-card-3" onclick="selectStage(3)" class="glass-card rounded-3xl p-5 border-2 border-slate-200 bg-slate-50/60 relative overflow-hidden opacity-60 cursor-not-allowed transition-all">
+          <div class="absolute -right-4 -bottom-4 opacity-10 text-purple-600">
+            <i data-lucide="factory" class="w-32 h-32"></i>
+          </div>
+          <div class="flex justify-between items-start mb-4">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-600">CHẶNG 3</span>
+            <span id="stage-status-3" class="text-slate-400"><i data-lucide="lock" class="w-6 h-6"></i></span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-1">Ứng Dụng & Điều Chế</h3>
+          <p class="text-xs text-slate-500 mb-4">10 Câu • Điền Khuyết • 35đ</p>
+          <div class="flex justify-between items-center text-xs font-semibold text-slate-600 border-t pt-3 border-slate-100">
+            <span>Điểm đạt được:</span>
+            <span id="stage-score-3" class="font-bold text-slate-400">0 / 35</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: GAMEPLAY -->
+    <section id="screen-gameplay" class="hidden transition-all duration-300">
+      <!-- Quiz Progress Header -->
+      <div class="glass-card rounded-2xl p-4 mb-4 flex flex-wrap gap-2 justify-between items-center">
+        <button onclick="backToMap()" class="text-slate-500 hover:text-slate-800 flex items-center space-x-1 text-xs font-bold">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Thoát</span>
+        </button>
+        <div class="flex items-center space-x-2">
+          <span id="quiz-level-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">NB</span>
+          <span id="quiz-progress-text" class="text-xs font-bold text-slate-600">Câu 1/10</span>
+        </div>
+        <div class="text-xs font-bold text-cyan-600">
+          Điểm chặng: <span id="stage-current-score" class="text-sm">0</span>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="glass-card rounded-3xl p-6 md:p-8 mb-4 shadow-xl border border-white">
+        <!-- Question Text -->
+        <div id="question-text" class="text-base md:text-lg font-bold text-slate-800 mb-6 leading-relaxed">
+          Đang tải câu hỏi...
+        </div>
+
+        <!-- Options Container -->
+        <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <!-- Dynamic Options loaded here -->
+        </div>
+
+        <!-- Feedback Box -->
+        <div id="feedback-box" class="hidden mt-6 p-4 rounded-2xl text-sm font-semibold flex items-center space-x-3">
+          <i id="feedback-icon" class="w-6 h-6 flex-shrink-0"></i>
+          <span id="feedback-text"></span>
+        </div>
+      </div>
+
+      <!-- Footer Action -->
+      <div class="flex justify-end">
+        <button id="next-btn" onclick="nextQuestion()" disabled class="px-6 py-3 rounded-2xl bg-slate-300 text-slate-500 font-bold text-sm shadow opacity-50 cursor-not-allowed flex items-center space-x-2 transition-all btn-bounce">
+          <span>CÂU TIẾP THEO</span>
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: STAGE RESULT MODAL -->
+    <div id="modal-result" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="glass-card rounded-3xl p-6 md:p-8 max-w-sm w-full text-center bg-white shadow-2xl">
+        <div id="result-icon-container" class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center mb-4">
+          <i data-lucide="award" class="w-10 h-10"></i>
+        </div>
+        <h3 id="result-title" class="text-2xl font-black text-slate-800 mb-2">HOÀN THÀNH CHẶNG!</h3>
+        <p id="result-subtitle" class="text-xs text-slate-500 mb-6">Bạn đã xuất sắc vượt qua các thử thách.</p>
+        
+        <div class="bg-slate-50 rounded-2xl p-4 mb-6 space-y-2 text-sm">
+          <div class="flex justify-between text-slate-600">
+            <span>Điểm chặng này:</span>
+            <span id="modal-stage-score" class="font-bold text-cyan-600">0đ</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Tổng điểm tích lũy:</span>
+            <span id="modal-total-score" class="font-bold text-indigo-600">0đ</span>
+          </div>
+        </div>
+
+        <button onclick="closeResultModal()" class="w-full py-3.5 rounded-2xl bg-cyan-500 text-white font-bold text-sm shadow-lg shadow-cyan-200 hover:bg-cyan-600 transition-all btn-bounce">
+          TIẾP TỤC HÀNH TRÌNH
+        </button>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD MODAL -->
+    <div id="modal-leaderboard" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="glass-card rounded-3xl p-6 max-w-md w-full bg-white shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex items-center space-x-2 text-amber-500">
+            <i data-lucide="trophy" class="w-6 h-6"></i>
+            <h3 class="text-lg font-black text-slate-800">BẢNG XẾP HẠNG</h3>
+          </div>
+          <button onclick="closeLeaderboard()" class="text-slate-400 hover:text-slate-600">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <div class="max-h-80 overflow-y-auto pr-1">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="border-b border-slate-100 text-slate-400 uppercase">
+                <th class="py-2">Hạng</th>
+                <th class="py-2">Tên</th>
+                <th class="py-2">Lớp</th>
+                <th class="py-2 text-right">Điểm</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body" class="divide-y divide-slate-50 text-slate-700 font-semibold">
+              <!-- Dynamic Leaderboard Data -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full text-center py-3 text-xs text-slate-400 font-medium">
+    Bản quyền thuộc Hóa Học 12 • KNTT • Web Interactive Game Offline Ready
+  </footer>
+
+  <!-- SCRIPT LOGIC & DATA -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. DATA CÂU HỎI HÓA HỌC 12 - BÀI 8 (AMINE)
+    // -------------------------------------------------------------
+    const quizData = {
+      1: [ // CHẶNG 1: Khái niệm & Danh pháp
+        { id: 1, level: "NB", q: "Amine là dẫn xuất của chất nào khi thay thế nguyên tử H bằng gốc hydrocarbon?", options: ["Ammonia ($NH_3$)", "Water ($H_2O$)", "Methane ($CH_4$)", "Benzene ($C_6H_6$)"], answer: 0 },
+        { id: 2, level: "NB", q: "Bậc của amine được tính bằng số lượng gốc hydrocarbon liên kết trực tiếp với nguyên tử nào?", options: ["Nguyên tử Carbon", "Nguyên tử Hydrogen", "Nguyên tử Nitrogen", "Nguyên tử Oxygen"], answer: 2 },
+        { id: 3, level: "NB", q: "Hợp chất $C_6H_5NH_2$ có tên thông thường là gì?", options: ["Aniline", "Toluidine", "Methylamine", "Pyridine"], answer: 0 },
+        { id: 4, level: "NB", q: "Amine nào sau đây là amine bậc một?", options: ["$CH_3NH_2$", "$(CH_3)_2NH$", "$(CH_3)_3N$", "$CH_3NHC_2H_5$"], answer: 0 },
+        { id: 5, level: "NB", q: "Danh pháp thay thế của $CH_3-CH_2-CH_2-NH_2$ là gì?", options: ["Propan-1-amine", "Propan-2-amine", "Propylamine", "Ethylmethylamine"], answer: 0 },
+        { id: 6, level: "TH", q: "Số đồng phân amine bậc 1 ứng với công thức phân tử $C_3H_9N$ là bao nhiêu?", options: ["1 đồng phân", "2 đồng phân", "3 đồng phân", "4 đồng phân"], answer: 1 },
+        { id: 7, level: "TH", q: "Hợp chất $(CH_3)_3N$ có tên theo danh pháp gốc - chức là gì?", options: ["Trimethylamine", "Dimethylamine", "Triethylamine", "Propylamine"], answer: 0 },
+        { id: 8, level: "TH", q: "Phân loại amine nào sau đây thuộc loại arylamine?", options: ["Aniline ($C_6H_5NH_2$)", "Methylamine ($CH_3NH_2$)", "Ethylamine ($C_2H_5NH_2$)", "Benzylamine ($C_6H_5CH_2NH_2$)"], answer: 0 },
+        { id: 9, level: "VD", q: "Cho các amine: (1) $CH_3NH_2$, (2) $CH_3NHCH_3$, (3) $(CH_3)_3N$. Xếp theo thứ tự tăng dần bậc amine?", options: ["(1) < (2) < (3)", "(3) < (2) < (1)", "(2) < (1) < (3)", "(1) < (3) < (2)"], answer: 0 },
+        { id: 10, level: "VD", q: "Amine X có CTPT $C_4H_{11}N$. Số đồng phân amine bậc 2 của X là bao nhiêu?", options: ["2 đồng phân", "3 đồng phân", "4 đồng phân", "5 đồng phân"], answer: 1 }
+      ],
+      2: [ // CHẶNG 2: Tính chất vật lý & TCVH
+        { id: 11, level: "NB", q: "Ở điều kiện thường, Aniline tồn tại ở trạng thái nào?", options: ["Chất khí, tan nhiều trong nước", "Chất lỏng, ít tan trong nước", "Chất rắn, tan vô hạn trong nước", "Chất khí, màu nâu đỏ"], answer: 1 },
+        { id: 12, level: "NB", q: "Dung dịch Methylamine làm giấy quỳ tím chuyển sang màu gì?", options: ["Màu đỏ", "Màu xanh", "Không đổi màu", "Màu vàng"], answer: 1 },
+        { id: 13, level: "NB", q: "Hiện tượng xảy ra khi nhỏ dung dịch Methylamine vào dung dịch $FeCl_3$ là gì?", options: ["Tạo kết tủa trắng", "Tạo kết tủa màu nâu đỏ $Fe(OH)_3$", "Có khí không màu thoát ra", "Dung dịch bị mất màu"], answer: 1 },
+        { id: 14, level: "NB", q: "Sản phẩm kết tủa thu được khi cho Aniline tác dụng với nước bromine có màu gì?", options: ["Màu vàng", "Màu đen", "Màu trắng", "Màu xanh"], answer: 2 },
+        { id: 15, level: "NB", q: "Các amine $CH_3NH_2, C_2H_5NH_2$ có mùi gì đặc trưng?", options: ["Mùi thơm hoa hồng", "Mùi khai tương tự $NH_3$", "Mùi hắc của lưu huỳnh", "Không có mùi"], answer: 1 },
+        { id: 16, level: "TH", q: "Phát biểu nào sau đây là ĐÚNG hay SAI: 'Aniline làm xanh giấy quỳ tím ẩm'?", options: ["ĐÚNG", "SAI"], answer: 1 },
+        { id: 17, level: "TH", q: "Methylamine tác dụng với $Cu(OH)_2$ tạo ra dung dịch phức chất có màu gì?", options: ["Màu đỏ gạch", "Màu xanh lam đậm", "Màu tím hoa sen", "Màu vàng nhạt"], answer: 1 },
+        { id: 18, level: "TH", q: "Khi cho $CH_3NH_2$ tác dụng với $HNO_2$ ở nhiệt độ thường, khí thoát ra là gì?", options: ["Khí Nitrogen ($N_2$)", "Khí Oxygen ($O_2$)", "Khí Ammonia ($NH_3$)", "Khí Chlorine ($Cl_2$)"], answer: 0 },
+        { id: 19, level: "VD", q: "Giải thích tại sao $t^o_{sôi}$ của $CH_3NH_2$ cao hơn $CH_4$ có phân tử khối tương đương?", options: ["Do $CH_3NH_2$ tạo liên kết hydrogen giữa các phân tử", "Do $CH_3NH_2$ có liên kết cộng hóa trị phân cực hơn", "Do $CH_3NH_2$ là chất khí", "Do $CH_3NH_2$ có tính base"], answer: 0 },
+        { id: 20, level: "VD", q: "Cho 0,1 mol Methylamine tác dụng vừa đủ với V ml dung dịch $HCl$ 1M. Giá trị của V là bao nhiêu?", options: ["50 ml", "100 ml", "150 ml", "200 ml"], answer: 1 }
+      ],
+      3: [ // CHẶNG 3: Ứng dụng & Điều chế
+        { id: 21, level: "NB", q: "Khử hợp chất nitrobenzene ($C_6H_5NO_2$) bằng $Fe + HCl$ đun nóng thu được hợp chất nào?", options: ["Aniline ($C_6H_5NH_2$)", "Benzene ($C_6H_6$)", "Phenol ($C_6H_5OH$)", "Toluene ($C_7H_8$)"], answer: 0 },
+        { id: 22, level: "NB", q: "Để khử mùi tanh của cá (do Trimethylamine gây ra), người ta thường dùng chất nào?", options: ["Nước vôi trong", "Giấm ăn (axit acetic)", "Muối ăn ($NaCl$)", "Nước cất"], answer: 1 },
+        { id: 23, level: "NB", q: "Nguyên liệu Hexamethylenediamine được ứng dụng để tổng hợp loại tơ nào?", options: ["Tơ nilon-6,6", "Tơ visco", "Tơ capron", "Tơ nitron"], answer: 0 },
+        { id: 24, level: "NB", q: "Phản ứng giữa $NH_3$ và alkyl halide ($CH_3I$) là phương pháp điều chế loại chất nào?", options: ["Alkylamine", "Arylamine", "Esters", "Ethers"], answer: 0 },
+        { id: 25, level: "NB", q: "Aniline là nguyên liệu quan trọng trong công nghiệp sản xuất ngành nào?", options: ["Phẩm nhuộm và dược phẩm", "Phân bón hóa học", "Xi măng và vật liệu xây dựng", "Thủy tinh"], answer: 0 },
+        { id: 26, level: "TH", q: "Aniline tác dụng với $HNO_2 + HCl$ ở nhiệt độ thấp ($0-5^\circ C$) tạo ra muối gì?", options: ["Muối Diazonium", "Muối Ammonium", "Muối Nitrat", "Muối Clorua"], answer: 0 },
+        { id: 27, level: "TH", q: "Aniline ưu tiên thế nguyên tử H vào các vị trí nào so với nhóm $-NH_2$ trên nhân thơm?", options: ["ortho và para", "meta và para", "ortho và meta", "Chỉ vị trí meta"], answer: 0 },
+        { id: 28, level: "TH", q: "Chất nào sau đây KHÔNG được dùng để điều chế trực tiếp ra Aniline trong một phản ứng?", options: ["Nitrobenzene", "Methanol", "Chlorobenzene", "Bromobenzene"], answer: 1 },
+        { id: 29, level: "VD", q: "Để rửa sạch ống nghiệm dính Aniline, nên dùng dung dịch nào trước khi rửa lại bằng nước?", options: ["Dung dịch $HCl$", "Dung dịch $NaOH$", "Nước xà phòng", "Dung dịch $NaCl$"], answer: 0 },
+        { id: 30, level: "VD", q: "Cho 9,3 gam Aniline tác dụng hoàn toàn với nước Bromine dư. Khối lượng kết tủa 2,4,6-tribromoaniline thu được là?", options: ["16,5 gam", "22,0 gam", "33,0 gam", "44,0 gam"], answer: 2 }
+      ]
+    };
+
+    // -------------------------------------------------------------
+    // 2. STATE MANAGEMENT & WEB AUDIO SYNTHESIZER
+    // -------------------------------------------------------------
+    let state = {
+      playerName: "",
+      playerClass: "12A1",
+      currentStage: 1,
+      currentQuestionIdx: 0,
+      scores: { 1: 0, 2: 0, 3: 0 },
+      unlockedStages: [1],
+      hasRetriedCurrentQuestion: false,
+      audioMuted: false
+    };
+
+    // Web Audio API Synthesizer
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioCtx();
+    }
+
+    function playSound(type) {
+      if (state.audioMuted) return;
+      initAudio();
+      if (!audioCtx) return;
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+
+      if (type === 'click') {
+        osc.frequency.setValueAtTime(400, now);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      } else if (type === 'correct') {
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === 'wrong') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.setValueAtTime(130, now + 0.15);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === 'win') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.setValueAtTime(554.37, now + 0.1);
+        osc.frequency.setValueAtTime(659.25, now + 0.2);
+        osc.frequency.setValueAtTime(880, now + 0.3);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+        osc.start(now);
+        osc.stop(now + 0.6);
+      }
+    }
+
+    function toggleAudio() {
+      state.audioMuted = !state.audioMuted;
+      const icon = document.getElementById('audio-icon');
+      if (state.audioMuted) {
+        icon.setAttribute('data-lucide', 'volume-x');
+      } else {
+        icon.setAttribute('data-lucide', 'volume-2');
+      }
+      lucide.createIcons();
+    }
+
+    // -------------------------------------------------------------
+    // 3. UI RENDERING & NAVIGATION
+    // -------------------------------------------------------------
+    function renderMath() {
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$", right: "$", display: false}
+          ]
+        });
+      }
+    }
+
+    function startGame(e) {
+      e.preventDefault();
+      playSound('click');
+      state.playerName = document.getElementById('player-name').value.trim();
+      state.playerClass = document.getElementById('player-class').value;
+
+      document.getElementById('map-player-name').innerText = state.playerName;
+      document.getElementById('map-player-class').innerText = `Lớp: ${state.playerClass}`;
+
+      document.getElementById('screen-home').classList.add('hidden');
+      document.getElementById('screen-map').classList.remove('hidden');
+      updateMapUI();
+    }
+
+    function updateMapUI() {
+      let total = state.scores[1] + state.scores[2] + state.scores[3];
+      document.getElementById('map-total-score').innerText = `${total} / 100`;
+
+      for (let s = 1; s <= 3; s++) {
+        const card = document.getElementById(`stage-card-${s}`);
+        const status = document.getElementById(`stage-status-${s}`);
+        const scoreSpan = document.getElementById(`stage-score-${s}`);
+
+        scoreSpan.innerText = `${state.scores[s]} / ${s === 1 ? 30 : 35}`;
+
+        if (state.unlockedStages.includes(s)) {
+          card.classList.remove('opacity-60', 'cursor-not-allowed', 'bg-slate-50/60');
+          card.classList.add('bg-white/90', 'cursor-pointer');
+          status.innerHTML = `<i data-lucide="play-circle" class="w-6 h-6 text-emerald-500"></i>`;
+        } else {
+          card.classList.add('opacity-60', 'cursor-not-allowed', 'bg-slate-50/60');
+          card.classList.remove('bg-white/90', 'cursor-pointer');
+          status.innerHTML = `<i data-lucide="lock" class="w-6 h-6 text-slate-400"></i>`;
+        }
+      }
+      lucide.createIcons();
+    }
+
+    function selectStage(s) {
+      if (!state.unlockedStages.includes(s)) return;
+      playSound('click');
+      state.currentStage = s;
+      state.currentQuestionIdx = 0;
+      document.getElementById('screen-map').classList.add('hidden');
+      document.getElementById('screen-gameplay').classList.remove('hidden');
+      loadQuestion();
+    }
+
+    function backToMap() {
+      playSound('click');
+      document.getElementById('screen-gameplay').classList.add('hidden');
+      document.getElementById('screen-map').classList.remove('hidden');
+      updateMapUI();
+    }
+
+    // -------------------------------------------------------------
+    // 4. GAMEPLAY LOGIC
+    // -------------------------------------------------------------
+    function loadQuestion() {
+      const stageQuestions = quizData[state.currentStage];
+      const qData = stageQuestions[state.currentQuestionIdx];
+      state.hasRetriedCurrentQuestion = false;
+
+      // Update Header info
+      document.getElementById('quiz-progress-text').innerText = `Câu ${state.currentQuestionIdx + 1}/10`;
+      document.getElementById('stage-current-score').innerText = `${state.scores[state.currentStage]}đ`;
+      
+      const badge = document.getElementById('quiz-level-badge');
+      badge.innerText = qData.level;
+      if (qData.level === 'NB') {
+        badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-100 text-cyan-700";
+      } else if (qData.level === 'TH') {
+        badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700";
+      } else {
+        badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700";
+      }
+
+      // Question text
+      document.getElementById('question-text').innerText = qData.q;
+
+      // Options
+      const optionsContainer = document.getElementById('options-container');
+      optionsContainer.innerHTML = '';
+
+      qData.options.forEach((optText, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `option-btn w-full p-4 rounded-2xl border border-slate-200 bg-white/80 hover:bg-cyan-50/50 text-left font-semibold text-slate-700 transition-all text-sm flex items-center justify-between btn-bounce`;
+        btn.onclick = () => handleAnswer(idx, btn);
+        btn.innerHTML = `
+          <span>${optText}</span>
+          <span class="opt-status w-6 h-6 rounded-full border border-slate-300 flex items-center justify-center text-xs text-transparent">✓</span>
+        `;
+        optionsContainer.appendChild(btn);
+      });
+
+      // Reset Feedback & Next Btn
+      const feedbackBox = document.getElementById('feedback-box');
+      feedbackBox.className = "hidden mt-6 p-4 rounded-2xl text-sm font-semibold flex items-center space-x-3";
+
+      const nextBtn = document.getElementById('next-btn');
+      nextBtn.disabled = true;
+      nextBtn.className = "px-6 py-3 rounded-2xl bg-slate-300 text-slate-500 font-bold text-sm shadow opacity-50 cursor-not-allowed flex items-center space-x-2 transition-all btn-bounce";
+
+      renderMath();
+    }
+
+    function handleAnswer(selectedIdx, btnElement) {
+      const stageQuestions = quizData[state.currentStage];
+      const qData = stageQuestions[state.currentQuestionIdx];
+      const feedbackBox = document.getElementById('feedback-box');
+      const feedbackText = document.getElementById('feedback-text');
+      const feedbackIcon = document.getElementById('feedback-icon');
+      const nextBtn = document.getElementById('next-btn');
+
+      if (selectedIdx === qData.answer) {
+        // CORRECT
+        playSound('correct');
+        btnElement.classList.remove('bg-white/80', 'hover:bg-cyan-50/50', 'border-slate-200');
+        btnElement.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-800');
+        
+        const statusSpan = btnElement.querySelector('.opt-status');
+        statusSpan.classList.remove('text-transparent', 'border-slate-300');
+        statusSpan.classList.add('bg-emerald-500', 'text-white', 'border-emerald-500');
+
+        // Score Calculation
+        if (!state.hasRetriedCurrentQuestion) {
+          // Points per question: Stage 1 = 3đ/câu; Stage 2 & 3 = 3.5đ/câu
+          const ptsPerQ = state.currentStage === 1 ? 3 : 3.5;
+          state.scores[state.currentStage] += ptsPerQ;
+          document.getElementById('stage-current-score').innerText = `${state.scores[state.currentStage]}đ`;
+        }
+
+        // Disable all options
+        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+        // Feedback
+        feedbackBox.classList.remove('hidden', 'bg-rose-50', 'text-rose-700');
+        feedbackBox.classList.add('bg-emerald-50', 'text-emerald-700');
+        feedbackIcon.setAttribute('data-lucide', 'check-circle-2');
+        
+        if (state.hasRetriedCurrentQuestion) {
+          feedbackText.innerText = "Chính xác! (Không cộng điểm do đã chọn sai trước đó).";
+        } else {
+          feedbackText.innerText = "Chính xác! Xuất sắc lắm!";
+        }
+
+        // Enable Next Btn
+        nextBtn.disabled = false;
+        nextBtn.className = "px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-lg shadow-cyan-200 hover:opacity-95 transition-all btn-bounce flex items-center space-x-2";
+
+      } else {
+        // WRONG
+        playSound('wrong');
+        state.hasRetriedCurrentQuestion = true;
+
+        btnElement.classList.remove('bg-white/80', 'hover:bg-cyan-50/50', 'border-slate-200');
+        btnElement.classList.add('bg-rose-50', 'border-rose-400', 'text-rose-800');
+        btnElement.disabled = true;
+
+        feedbackBox.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700');
+        feedbackBox.classList.add('bg-rose-50', 'text-rose-700');
+        feedbackIcon.setAttribute('data-lucide', 'alert-circle');
+        feedbackText.innerText = "Chưa chính xác! Hãy suy nghĩ và thử lại nhé.";
+      }
+
+      lucide.createIcons();
+    }
+
+    function nextQuestion() {
+      playSound('click');
+      state.currentQuestionIdx++;
+      if (state.currentQuestionIdx < 10) {
+        loadQuestion();
+      } else {
+        finishStage();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 5. STAGE FINISH & LEADERBOARD
+    // -------------------------------------------------------------
+    function finishStage() {
+      playSound('win');
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+      // Unlock Next Stage
+      if (state.currentStage < 3 && !state.unlockedStages.includes(state.currentStage + 1)) {
+        state.unlockedStages.push(state.currentStage + 1);
+      }
+
+      // Save LocalStorage Leaderboard
+      saveLeaderboardData();
+
+      // Modal UI
+      document.getElementById('modal-stage-score').innerText = `${state.scores[state.currentStage]}đ`;
+      const totalScore = state.scores[1] + state.scores[2] + state.scores[3];
+      document.getElementById('modal-total-score').innerText = `${totalScore}đ`;
+
+      document.getElementById('modal-result').classList.remove('hidden');
+    }
+
+    function closeResultModal() {
+      playSound('click');
+      document.getElementById('modal-result').classList.add('hidden');
+      backToMap();
+    }
+
+    function saveLeaderboardData() {
+      let lb = JSON.parse(localStorage.getItem('amine_game_lb') || '[]');
+      const totalScore = state.scores[1] + state.scores[2] + state.scores[3];
+
+      const existingIdx = lb.findIndex(item => item.name === state.playerName && item.class === state.playerClass);
+      if (existingIdx >= 0) {
+        if (totalScore > lb[existingIdx].score) {
+          lb[existingIdx].score = totalScore;
+        }
+      } else {
+        lb.push({ name: state.playerName, class: state.playerClass, score: totalScore });
+      }
+
+      lb.sort((a, b) => b.score - a.score);
+      localStorage.setItem('amine_game_lb', JSON.stringify(lb));
+    }
+
+    function showLeaderboard() {
+      playSound('click');
+      const lbBody = document.getElementById('leaderboard-body');
+      lbBody.innerHTML = '';
+
+      let lb = JSON.parse(localStorage.getItem('amine_game_lb') || '[]');
+      if (lb.length === 0) {
+        lbBody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">Chưa có dữ liệu xếp hạng</td></tr>`;
+      } else {
+        lb.slice(0, 10).forEach((item, index) => {
+          const row = document.createElement('tr');
+          row.className = index < 3 ? "text-cyan-700 font-bold" : "";
+          row.innerHTML = `
+            <td class="py-2.5">#${index + 1}</td>
+            <td class="py-2.5">${item.name}</td>
+            <td class="py-2.5">${item.class}</td>
+            <td class="py-2.5 text-right font-black text-cyan-600">${item.score}đ</td>
+          `;
+          lbBody.appendChild(row);
+        });
+      }
+
+      document.getElementById('modal-leaderboard').classList.remove('hidden');
+    }
+
+    function closeLeaderboard() {
+      playSound('click');
+      document.getElementById('modal-leaderboard').classList.add('hidden');
+    }
+
+    // Init Icons
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
